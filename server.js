@@ -6,9 +6,10 @@ const cors = require('cors');
 const socketIo = require('socket.io');
 
 const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/users.routes');
 const chatsRoutes = require('./routes/chats.routes');
 const messageRoutes = require('./routes/messages.routes');
-const { socketAuthMiddleware } = require('./middlewares/auth.middleware');
+const { socketAuthMiddleware, httpAuthMiddleware } = require('./middlewares/auth.middleware');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', httpAuthMiddleware, userRoutes);
 //app.use('/api/chats', chatsRoutes);
 //sapp.use('/api/messages', messageRoutes);
 
@@ -109,19 +111,35 @@ io.on("connection", (socket) => {
       from = socket.user.id;
     }
 
-    io.emit(`message:${to}`, { from, content }); // Reenvía al destinatario
+    //io.emit(`message:${to}`, { from, content }); // Reenvía al destinatario
 
     // Guardado en la base de datos
     try {
       const chat = await Chat.findOne({
         _id: to,
       });
+      //console.log(chat);
       if (!chat) {
         console.error("No existe el chat con el id proporcionado");
         return io.emit("error:sendMessage", {
           error: "No existe el chat con el id proporcionado",
         });
       }
+
+      // Enviar mensaje a los participantes involucrados
+      chat.participants.forEach((participant) => {
+        const userSockets = onlineUsers.get(participant.toString());
+        if (userSockets) {
+          userSockets.forEach((socketId) => {
+            io.to(socketId).emit("message", {
+              chatId: chat._id,
+              from,
+              content,
+            });
+          });
+        }
+      })
+
       const newMessage = new Message({
         sender: from,
         content,
@@ -138,11 +156,11 @@ io.on("connection", (socket) => {
   socket.on("whoIsOnline", async () => {
     // Supón que tienes un modelo User y cada usuario tiene un array de contactos (por ejemplo, user.contacts)
     const userId = socket.user.id;
-    //const user = await User.findById(userId).select('contacts');
-    //if (!user) return socket.emit('onlineUsers', []);
+    const user = await User.findById(userId).select('contacts');
+    if (!user) return socket.emit('onlineUsers', []);
 
-    //const online = user.contacts.filter(id => onlineUsers.has(id.toString()));
-    socket.emit("onlineUsers", online);
+    const online = user.contacts.filter(contact => onlineUsers.has(contact._id.toString()));
+    return socket.emit("onlineUsers", online);
   });
 
   // Cuando se desconecta un usuario
