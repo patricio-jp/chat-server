@@ -1,17 +1,22 @@
 
 const Chat = require('../models/chat.model');
 const User = require('../models/user.model');
+const mongoose = require('mongoose');
 
 exports.getAllChats = async (req, res) => {
     try {
-        const userId = req.query.userId;
+        const userId = req.query.userid;
         // Validar que userId sea un ObjectId válido
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'ID de usuario no válido.' });
         }
 
         // Buscar chats donde el usuario esté participando
-        const chats = await Chat.find({ participants: mongoose.Types.ObjectId(userId) });
+        //const chats = await Chat.find({ participants: $in:[userId] });
+        const chats = await Chat.find({
+      participants: { $in: [ userId ] }
+    })
+    .populate('participants', 'username');
 
         res.status(200).json(chats);
     } catch (err) {
