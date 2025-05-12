@@ -7,7 +7,7 @@ const socketIo = require('socket.io');
 
 const authRoutes = require('./routes/auth.routes');
 const chatsRoutes = require('./routes/chats.routes');
-//const messageRoutes = require('./routes/messages.routes');
+const messageRoutes = require('./routes/messages.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,7 +20,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatsRoutes);
-//app.use('/api/messages', messageRoutes);
+app.use('/api/messages', messageRoutes);
 
 const onlineUsers = new Map(); // userId => Set(socketIds)
 

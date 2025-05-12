@@ -1,3 +1,4 @@
+const express = require('express');
 const router = express.Router();
 
 // Controladores (deberías implementarlos en un archivo separado)
@@ -16,7 +17,7 @@ router.get('/', getMessagesByChat);
 //router.get('/:id', getMessageById);
 
 // Crear un nuevo mensaje
-router.post('/', createMessage);
+//router.post('/', createMessage);
 
 // Actualizar un mensaje existente
 //router.put('/:id', updateMessage);

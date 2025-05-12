@@ -6,18 +6,15 @@ const mongoose = require('mongoose');
 exports.getAllChats = async (req, res) => {
     try {
         const userId = req.query.userid;
+        console.log('userId:', userId);
         // Validar que userId sea un ObjectId válido
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'ID de usuario no válido.' });
         }
-
+console.log('2userId:', userId);
         // Buscar chats donde el usuario esté participando
-        //const chats = await Chat.find({ participants: $in:[userId] });
-        const chats = await Chat.find({
-      participants: { $in: [ userId ] }
-    })
-    .populate('participants', 'username');
-
+        const chats = await Chat.find({ participants: userId });
+       //const chats = await Chat.find({ participants: { $in: [ userId ] } }).populate('participants', 'username');
         res.status(200).json(chats);
     } catch (err) {
         console.error('Error al obtener los chats del usuario:', err);
@@ -28,6 +25,7 @@ exports.getAllChats = async (req, res) => {
 
 exports.createChat = async (req, res) => {
   try {
+    const userId = req.query.userid;
     const { participants, name, isGroup } = req.body;
 
     // 1) Validaciones básicas
@@ -35,10 +33,10 @@ exports.createChat = async (req, res) => {
       return res.status(400).json({ message: 'Debes enviar al menos 2 participantes.' });
     }
     // Convertir a ObjectId si vienen como strings
-    const participantIds = participants.map(id => mongoose.Types.ObjectId(id));
+    //const participantIds = participants.map(id => mongoose.Types.ObjectId(id));
 
     // 2) Determinar si es grupo
-    const groupFlag = isGroup === true || participantIds.length > 2;
+    const groupFlag = isGroup === true || participants.length > 2;
 
     // 3) Si es grupo, exigir nombre
     if (groupFlag && (!name || name.trim() === '')) {
@@ -50,7 +48,7 @@ exports.createChat = async (req, res) => {
       const existing = await Chat.findOne({
         isGroup: false,
         participants: { 
-          $all: participantIds, 
+          $all: participants, 
           $size: 2 
         }
       });
@@ -63,10 +61,15 @@ exports.createChat = async (req, res) => {
     const newChat = new Chat({
       isGroup: groupFlag,
       name: groupFlag ? name : undefined,
-      participants: participantIds,
+      participants: participants,
     });
     await newChat.save();
-
+participants.forEach(async (participant) => {
+        // Asignar el chat a cada participante
+        const user = await User.findById(participant);
+        user.chats.push(newChat);
+        await user.save();
+      });
     res.status(201).json(newChat);
 
   } catch (err) {
