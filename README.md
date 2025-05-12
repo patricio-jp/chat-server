@@ -70,7 +70,7 @@ npm start
         ```
 
 -   **whoIsOnline**
-    -   **Descripción:** Solicita la lista de contactos conectados del usuario autenticado.
+    -   **Descripción:** Solicita la lista de usuarios conectados.
     -   **Datos requeridos:** _Ninguno_
 
 ---

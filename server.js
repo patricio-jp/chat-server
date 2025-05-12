@@ -22,8 +22,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', httpAuthMiddleware, userRoutes);
-//app.use('/api/chats', chatsRoutes);
-//sapp.use('/api/messages', messageRoutes);
+app.use('/api/chats', httpAuthMiddleware, chatsRoutes);
+app.use('/api/messages', httpAuthMiddleware, messageRoutes);
 
 const onlineUsers = new Map(); // userId => Set(socketIds)
 
@@ -154,13 +154,8 @@ io.on("connection", (socket) => {
 
   // Usuarios conectados
   socket.on("whoIsOnline", async () => {
-    // Supón que tienes un modelo User y cada usuario tiene un array de contactos (por ejemplo, user.contacts)
-    const userId = socket.user.id;
-    const user = await User.findById(userId).select('contacts');
-    if (!user) return socket.emit('onlineUsers', []);
-
-    const online = user.contacts.filter(contact => onlineUsers.has(contact._id.toString()));
-    return socket.emit("onlineUsers", online);
+    const online = Array.from(onlineUsers.keys());
+    return io.emit("onlineUsers", online);
   });
 
   // Cuando se desconecta un usuario

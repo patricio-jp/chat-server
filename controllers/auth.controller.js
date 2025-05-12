@@ -30,7 +30,9 @@ exports.login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
     const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1d' });
-    res.json({ token, username: user.username });
+    // Marcar como undefined password para enviar el usuario
+    user.password = undefined;
+    res.json({ token, user });
   } catch (err) {
     res.status(500).json({ message: 'Error en el servidor' });
   }
