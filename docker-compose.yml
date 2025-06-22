@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - MONGO_URI=mongodb+srv://chatdb:mgOd7F9sKy7gxZSz@cluster0.4wzzdee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - JWT_SECRET=your_jwt_secret
+    restart: unless-stopped
+    networks:
+      - dockernet
+networks:
+  dockernet:
+    external: true
