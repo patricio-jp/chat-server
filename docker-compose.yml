@@ -5,9 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3001:3001'
-    environment:
-      - MONGO_URI=mongodb+srv://chatdb:mgOd7F9sKy7gxZSz@cluster0.4wzzdee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-      - JWT_SECRET=your_jwt_secret
+    env_file:
+      - '.env'
     restart: unless-stopped
     networks:
       - dockernet
