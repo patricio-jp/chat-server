@@ -13,7 +13,14 @@ const { socketAuthMiddleware, httpAuthMiddleware } = require('./middlewares/auth
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, { cors: { origin: '*' } });
+const io = socketIo(server, {
+  cors: {
+    origin: "*", // O especifica el origen exacto de tu frontend, por ejemplo: "http://localhost:3001"
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+  }
+});
 
 require('./config/database')(); // Conexión a MongoDB
 
